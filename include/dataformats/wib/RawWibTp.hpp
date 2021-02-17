@@ -1,12 +1,12 @@
 /**
- * @file TPFrame.hpp Trigger Primitive bit fields and accessors
+ * @file RawWibTp.hpp Raw Trigger Primitive bit fields and accessors
  *
  * This is part of the DUNE DAQ , copyright 2020.
  * Licensing/copyright details are in the COPYING file that you should have
  * received with this code.
  */
-#ifndef DATAFORMATS_INCLUDE_DATAFORMATS_TP_TPFRAME_HPP_
-#define DATAFORMATS_INCLUDE_DATAFORMATS_TP_TPFRAME_HPP_
+#ifndef DATAFORMATS_INCLUDE_DATAFORMATS_WIB_RAWWIBTP_HPP_
+#define DATAFORMATS_INCLUDE_DATAFORMATS_WIB_RAWWIBTP_HPP_
 
 #include <bitset>
 #include <iostream>
@@ -16,13 +16,11 @@ namespace dunedaq {
 namespace dataformats {
 
 typedef uint32_t word_t;
-typedef uint16_t adc_t;
-typedef std::vector<uint16_t> adc_v;
 
 //===================
 // TP header struct
 //===================
-struct TPHeader
+struct TpHeader
 {
   word_t flags: 13, slot_no: 3, wire_no : 8, fiber_no : 3, crate_no : 5;
   word_t timestamp_1;
@@ -51,7 +49,7 @@ struct TPHeader
 
   void printHex() const
   {
-    std::cout << "Printing TP header:\n";
+    std::cout << "Printing raw WIB TP header:\n";
     std::cout << std::hex << "flags:" << flags << " slot:" << slot_no << " wire:" << wire_no
               << " fiber:" << fiber_no << " crate:" << crate_no << " timestamp:" << timestamp() << std::dec << '\n';
   }
@@ -68,7 +66,7 @@ struct TPHeader
 //========================
 // TP data struct
 //========================
-struct TPData
+struct TpData
 {
   // This struct contains three words of TP values that form the main repeating
   // pattern in the TP block.
@@ -85,8 +83,9 @@ struct TPData
               << '\n';
   }
 
-  void printHex() const
+  void printHex(int i) const
   {
+    std::cout << "Printing raw WIB TP " << i << ":\n";
     std::cout << std::hex << "end_time:" << end_time << " start_time:" << start_time 
               << " peak_time:" << peak_time << " peak_adc:" << peak_adc 
               << " hit_continue:" << hit_continue << " flags:" << flags 
@@ -97,7 +96,7 @@ struct TPData
 //========================
 // TP pedestal information struct
 //========================
-struct TPPedinfo
+struct TpPedinfo
 {
   // This struct contains three words: one carrying median and accumulator and two padding words
   word_t accumulator: 16, median: 16;
@@ -112,7 +111,7 @@ struct TPPedinfo
 
   void printHex() const
   {
-    std::cout << "Printing TP pedinfo:\n";
+    std::cout << "Printing raw WIB TP pedinfo:\n";
     std::cout << std::hex << "median:" << median << " accumulator:" << accumulator 
               << " padding_1:" << padding_1 << " padding_2:" << padding_2 
               << " padding_3: "<< padding_3 << " padding_4:" << padding_4 << std::dec << '\n';
@@ -120,15 +119,21 @@ struct TPPedinfo
 };
 
 //========================
-// TPData block
+// TpData block
 //========================
-struct TPDataBlock
-{  
-  std::vector<TPData> block;
+struct TpDataBlock
+{
+  TpData tp; 
 
-  void add_tp(const TPData& data) 
+  std::vector<TpData> block;
+
+  void set_tp(const TpData& data) 
   {
     block.push_back(data);
+  }
+
+  const TpData* get_tp(const int& tp_num) const {
+    return &block[tp_num];
   }
 
   unsigned int num_tp_per_block()
@@ -145,27 +150,31 @@ struct TPDataBlock
 
   void printHex() const
   {
+    int i=0;
+    std::cout << "Printing raw WIB TP data block:\n";
     for (auto b: block) {
-      b.printHex();
+      b.printHex(i+1);
+      ++i;
     }
   }
 };
 
 //=============
-// FELIX frame
+// Raw WIB Trigger Primitive frame
 //=============
-class TPFrame
+class RawWibTp
 {
 public:
   // Constant expressions
-  static constexpr size_t num_frame_hdr_words = 3;
-  static constexpr size_t num_tp_words = 3;
-  static constexpr size_t num_pedinfo_words = 3;
+  static constexpr size_t m_num_frame_hdr_words = 3;
+  static constexpr size_t m_num_tp_words = 3;
+  static constexpr size_t m_num_pedinfo_words = 3;
 
 private:
-  TPHeader head;
-  TPDataBlock data;
-  TPPedinfo pedinfo;
+  TpHeader head;
+  TpData tp;
+  TpDataBlock data;
+  TpPedinfo pedinfo;
 
 public:
   // TP header accessors
@@ -184,21 +193,22 @@ public:
   // TP data accessors
   uint8_t num_tp_per_block() { return data.num_tp_per_block(); }
   // TP data mutators
-  void add_tp(const TPData& tpdata) { data.add_tp(tpdata); }
 
   // Const struct accessors
-  const TPHeader*     tp_header() const { return &head; }
-  const TPDataBlock*  tp_data() const { return &data; }
-  const TPPedinfo*    tp_pedinfo() const { return &pedinfo; }
+  const TpHeader*     get_header() const { return &head; }
+  const TpData*       get_tp(const int& tp_num) const { return data.get_tp(tp_num); }
+  const TpDataBlock*  get_data() const { return &data; }
+  const TpPedinfo*    get_pedinfo() const { return &pedinfo; }
   // Const struct mutators
-  void set_tp_header(const TPHeader& hdr) { head = hdr; }
-  void set_tp_data(const TPDataBlock& dat) {data = dat; }
-  void set_tp_pedinfo(const TPPedinfo& ped) { pedinfo = ped; }
+  void set_header(const TpHeader& hdr) { head = hdr; }
+  void set_tp(const TpData& tpdata) { data.set_tp(tpdata); }
+  void set_data(const TpDataBlock& block) {data = block; }
+  void set_pedinfo(const TpPedinfo& ped) { pedinfo = ped; }
 
   // Utility functions
   void print() const
   {
-    std::cout << "Printing frame:\n";
+    std::cout << "Printing raw WIB TP frame:\n";
     head.print();
     data.print();
     pedinfo.print();  
@@ -206,7 +216,7 @@ public:
 
   void printHex() const 
   {
-    std::cout << "Printing frame:\n";
+    std::cout << "Printing raw WIB TP frame:\n";
     head.printHex();
     data.printHex();
     pedinfo.printHex();
