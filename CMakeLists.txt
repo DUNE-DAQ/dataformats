@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(dataformats VERSION 1.0.0)
+project(dataformats VERSION 2.0.0)
 
 find_package(daq-cmake REQUIRED)
 
@@ -39,6 +39,7 @@ daq_add_unit_test(TriggerRecord_test           LINK_LIBRARIES dataformats)
 daq_add_unit_test(TriggerRecordHeader_test     LINK_LIBRARIES dataformats)
 daq_add_unit_test(TriggerRecordHeaderData_test LINK_LIBRARIES dataformats)
 daq_add_unit_test(WIBFrame_test                LINK_LIBRARIES dataformats)
+daq_add_unit_test(WIB2Frame_test                LINK_LIBRARIES dataformats)
 
 ##############################################################################
 
