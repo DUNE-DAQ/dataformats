@@ -11,6 +11,8 @@
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 
+#include "dataformats/Exceptions.hpp"
+
 #include <bitset>
 #include <iostream>
 #include <vector>
@@ -18,42 +20,6 @@
 namespace dunedaq {
 
 namespace dataformats {
-
-/**
- * @brief A std::exception indicating that the requested index is out of range
- */
-class WibFrameRelatedIndexError : public std::exception
-{
-public:
-  WibFrameRelatedIndexError(std::string file, int line, int wib_index_supplied, int wib_index_min, int wib_index_max)
-    : m_file(file)
-    , m_line(line)
-    , m_wib_index_supplied(wib_index_supplied)
-    , m_wib_index_min(wib_index_min)
-    , m_wib_index_max(wib_index_max)
-  {
-    m_what = m_file + ":" + std::to_string(m_line) + ": Supplied index " + std::to_string(m_wib_index_supplied) +
-             " is outside the allowed range of " + std::to_string(wib_index_min) + " to " +
-             std::to_string(wib_index_max);
-  }
-
-  const char* what() const noexcept override { return (m_what).c_str(); }
-
-  std::string get_file() const { return m_file; }
-  int get_line() const { return m_line; }
-  int get_wib_index_supplied() const { return m_wib_index_supplied; }
-  int get_wib_index_min() const { return m_wib_index_min; }
-  int get_wib_index_max() const { return m_wib_index_max; }
-
-private:
-  std::string m_file;
-  int m_line;
-  int m_wib_index_supplied;
-  int m_wib_index_min;
-  int m_wib_index_max;
-
-  std::string m_what;
-};
 
 using word_t = uint32_t; // NOLINT(build/unsigned)
 using adc_t = uint16_t;  // NOLINT(build/unsigned)
@@ -277,7 +243,7 @@ struct ColdataSegment
           return adc1ch3_1 | adc1ch3_2 << 4;
       }
     }
-    throw WibFrameRelatedIndexError(__FILE__, __LINE__, adc, 0, 1);
+    throw WibFrameRelatedIndexError(DATAFORMATS_HERE, adc, 0, 1);
   }
 
   void set_channel(const uint8_t adc, const uint8_t ch, const uint16_t new_val) // NOLINT(build/unsigned)
@@ -354,7 +320,7 @@ private:
     auto segment_id = (adc / 2) * 2 + ch / 4;
 
     if (segment_id < 0 || segment_id > s_num_seg_per_block - 1) {
-      throw WibFrameRelatedIndexError(__FILE__, __LINE__, segment_id, 0, s_num_seg_per_block - 1);
+      throw WibFrameRelatedIndexError(DATAFORMATS_HERE, segment_id, 0, s_num_seg_per_block - 1);
     }
     return segment_id;
   }
@@ -451,7 +417,7 @@ private:
   void throw_if_invalid_block_index_(const int block_num) const
   {
     if (block_num < 0 || block_num > s_num_block_per_frame - 1) {
-      throw WibFrameRelatedIndexError(__FILE__, __LINE__, block_num, 0, s_num_block_per_frame - 1);
+      throw WibFrameRelatedIndexError(DATAFORMATS_HERE, block_num, 0, s_num_block_per_frame - 1);
     }
   }
 
