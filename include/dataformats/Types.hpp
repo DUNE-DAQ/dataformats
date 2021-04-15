@@ -23,33 +23,6 @@ namespace dunedaq {
 namespace dataformats {
 
 /**
- * @brief A std::exception class indicating that a malloc failed
- */
-class MemoryAllocationFailed : public std::exception
-{
-public:
-  MemoryAllocationFailed(std::string file, int line, size_t bytes)
-    : m_file(file)
-    , m_line(line)
-    , m_bytes(bytes)
-  {
-    m_what = m_file + ":" + std::to_string(m_line) + ": Malloc of " + std::to_string(m_bytes) + " bytes failed";
-  }
-
-  const char* what() const noexcept override { return m_what.c_str(); }
-
-  std::string get_file() const { return m_file; }
-  int get_line() const { return m_line; }
-  size_t get_bytes() const { return m_bytes; }
-
-private:
-  std::string m_file;
-  int m_line;
-  size_t m_bytes;
-  std::string m_what;
-};
-
-/**
  * @brief Type used to represent run number
  */
 using run_number_t = uint32_t; // NOLINT(build/unsigned)
