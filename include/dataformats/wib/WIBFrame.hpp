@@ -11,7 +11,7 @@
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 
-#include "dataformats/Exceptions.hpp"
+#include "dataformats/Issues.hpp"
 
 #include <bitset>
 #include <iostream>

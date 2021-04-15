@@ -13,9 +13,9 @@
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_FRAGMENT_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_FRAGMENT_HPP_
 
-#include "dataformats/Exceptions.hpp"
 #include "dataformats/FragmentHeader.hpp"
 #include "dataformats/GeoID.hpp"
+#include "dataformats/Issues.hpp"
 #include "dataformats/Types.hpp"
 
 #include <bitset>

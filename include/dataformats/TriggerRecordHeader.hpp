@@ -10,7 +10,7 @@
 #define DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGERRECORDHEADER_HPP_
 
 #include "dataformats/ComponentRequest.hpp"
-#include "dataformats/Exceptions.hpp"
+#include "dataformats/Issues.hpp"
 #include "dataformats/TriggerRecordHeaderData.hpp"
 #include "dataformats/Types.hpp"
 

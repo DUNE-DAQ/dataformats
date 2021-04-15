@@ -1,5 +1,5 @@
 /**
- * @file Exceptions.hpp  Exception definitions
+ * @file Issues.hpp  Exception definitions
  *
  * This file contains either std::exception or ERS_ISSUE definitions for all error types encountered in the dataformats
  * library
@@ -9,8 +9,8 @@
  * received with this code.
  */
 
-#ifndef DATAFORMATS_INCLUDE_DATAFORMATS_EXCEPTIONS_HPP_
-#define DATAFORMATS_INCLUDE_DATAFORMATS_EXCEPTIONS_HPP_
+#ifndef DATAFORMATS_INCLUDE_DATAFORMATS_ISSUES_HPP_
+#define DATAFORMATS_INCLUDE_DATAFORMATS_ISSUES_HPP_
 
 #include <sstream>
 #include <string>
@@ -273,4 +273,4 @@ ERS_DECLARE_ISSUE(dataformats,
 }
 #endif // USE_ERS
 
-#endif // DATAFORMATS_INCLUDE_DATAFORMATS_EXCEPTIONS_HPP_
+#endif // DATAFORMATS_INCLUDE_DATAFORMATS_ISSUES_HPP_
