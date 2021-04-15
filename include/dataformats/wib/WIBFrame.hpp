@@ -11,30 +11,49 @@
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_WIB_WIBFRAME_HPP_
 
-#include "ers/Issue.hpp"
-
 #include <bitset>
 #include <iostream>
 #include <vector>
 
 namespace dunedaq {
 
-/**
- * @brief An ERS Error indicating that the requested index is out of range
- * @param wib_index_supplied Index that caused the error
- * @param wib_index_min Minium valid index for this function
- * @param wib_index_max Maximum valid index for this function
- * @cond Doxygen doesn't like ERS macros
- */
-ERS_DECLARE_ISSUE(dataformats,
-                  WibFrameRelatedIndexError,
-                  "Supplied index " << wib_index_supplied << " is outside the allowed range of " << wib_index_min << " to " << wib_index_max,
-                  ((int)wib_index_supplied)((int)wib_index_min)((int)wib_index_max)) // NOLINT
-    /// @endcond
-
-
-
 namespace dataformats {
+
+/**
+ * @brief A std::exception indicating that the requested index is out of range
+ */
+class WibFrameRelatedIndexError : public std::exception
+{
+public:
+  WibFrameRelatedIndexError(std::string file, int line, int wib_index_supplied, int wib_index_min, int wib_index_max)
+    : m_file(file)
+    , m_line(line)
+    , m_wib_index_supplied(wib_index_supplied)
+    , m_wib_index_min(wib_index_min)
+    , m_wib_index_max(wib_index_max)
+  {
+    m_what = m_file + ":" + std::to_string(m_line) + ": Supplied index " + std::to_string(m_wib_index_supplied) +
+             " is outside the allowed range of " + std::to_string(wib_index_min) + " to " +
+             std::to_string(wib_index_max);
+  }
+
+  const char* what() const noexcept override { return (m_what).c_str(); }
+
+  std::string get_file() const { return m_file; }
+  int get_line() const { return m_line; }
+  int get_wib_index_supplied() const { return m_wib_index_supplied; }
+  int get_wib_index_min() const { return m_wib_index_min; }
+  int get_wib_index_max() const { return m_wib_index_max; }
+
+private:
+  std::string m_file;
+  int m_line;
+  int m_wib_index_supplied;
+  int m_wib_index_min;
+  int m_wib_index_max;
+
+  std::string m_what;
+};
 
 using word_t = uint32_t; // NOLINT(build/unsigned)
 using adc_t = uint16_t;  // NOLINT(build/unsigned)
@@ -77,9 +96,9 @@ struct WIBHeader
   // Print functions for debugging.
   std::ostream& print_hex(std::ostream& o) const
   {
-    return o << std::hex << "SOF:" << sof << " version:" << version << " fiber:" << fiber_no
-             << " slot:" << slot_no << " crate:" << crate_no << " mm:" << mm << " oos:" << oos
-             << " wib_errors:" << wib_errors << " timestamp: " << get_timestamp() << std::dec << '\n';
+    return o << std::hex << "SOF:" << sof << " version:" << version << " fiber:" << fiber_no << " slot:" << slot_no
+             << " crate:" << crate_no << " mm:" << mm << " oos:" << oos << " wib_errors:" << wib_errors
+             << " timestamp: " << get_timestamp() << std::dec << '\n';
   }
 
   std::ostream& print_bits(std::ostream& o) const
@@ -111,9 +130,15 @@ struct ColdataHeader
   word_t error_register : 16, reserved_2 : 16;
   word_t hdr_1 : 4, hdr_3 : 4, hdr_2 : 4, hdr_4 : 4, hdr_5 : 4, hdr_7 : 4, hdr_6 : 4, hdr_8 : 4;
 
-  uint16_t get_checksum_a() const { return static_cast<uint16_t>(checksum_a_1) | (checksum_a_2 << 8); } // NOLINT(build/unsigned)
-  uint16_t get_checksum_b() const { return static_cast<uint16_t>(checksum_b_1) | (checksum_b_2 << 8); } // NOLINT(build/unsigned)
-  uint8_t get_hdr(const uint8_t i) const                                                       // NOLINT(build/unsigned)
+  uint16_t get_checksum_a() const
+  {
+    return static_cast<uint16_t>(checksum_a_1) | (checksum_a_2 << 8);
+  } // NOLINT(build/unsigned)
+  uint16_t get_checksum_b() const
+  {
+    return static_cast<uint16_t>(checksum_b_1) | (checksum_b_2 << 8);
+  }                                      // NOLINT(build/unsigned)
+  uint8_t get_hdr(const uint8_t i) const // NOLINT(build/unsigned)
   {
     switch (i) {
       case 1:
@@ -182,8 +207,8 @@ struct ColdataHeader
     o << std::hex << "s1_error:" << s1_error << " s2_error:" << s2_error << " checksum_a1:" << checksum_a_1
       << " checksum_b1:" << checksum_b_1 << " checksum_a2:" << checksum_a_2 << " checksum_b1:" << checksum_b_2
       << " coldata_convert_count:" << coldata_convert_count << " error_register:" << error_register
-      << " hdr_1:" << hdr_1 << " hdr_2:" << hdr_2 << " hdr_3:" << hdr_3 << " hdr_4:" << hdr_4
-      << " hdr_5:" << hdr_5 << " hdr_6:" << hdr_6 << " hdr_7:" << hdr_7 << " hdr_8:" << hdr_8;
+      << " hdr_1:" << hdr_1 << " hdr_2:" << hdr_2 << " hdr_3:" << hdr_3 << " hdr_4:" << hdr_4 << " hdr_5:" << hdr_5
+      << " hdr_6:" << hdr_6 << " hdr_7:" << hdr_7 << " hdr_8:" << hdr_8;
     return o << '\n';
   }
   std::ostream& print_bits(std::ostream& o) const
@@ -193,9 +218,8 @@ struct ColdataHeader
       << " checksum_a2:" << std::bitset<8>(checksum_a_2) << " checksum_b2:" << std::bitset<8>(checksum_b_2)
       << " coldata_convert_count:" << std::bitset<16>(coldata_convert_count)
       << " error_register:" << std::bitset<16>(error_register) << " hdr_1:" << std::bitset<8>(hdr_1)
-      << " hdr_2:" << std::bitset<8>(hdr_2) << " hdr_3:" << std::bitset<8>(hdr_3)
-      << " hdr_4:" << std::bitset<8>(hdr_4) << " hdr_5:" << std::bitset<8>(hdr_5)
-      << " hdr_6:" << std::bitset<8>(hdr_6) << " hdr_7:" << std::bitset<8>(hdr_7)
+      << " hdr_2:" << std::bitset<8>(hdr_2) << " hdr_3:" << std::bitset<8>(hdr_3) << " hdr_4:" << std::bitset<8>(hdr_4)
+      << " hdr_5:" << std::bitset<8>(hdr_5) << " hdr_6:" << std::bitset<8>(hdr_6) << " hdr_7:" << std::bitset<8>(hdr_7)
       << " hdr_8:" << std::bitset<8>(hdr_8);
     return o << '\n';
   }
@@ -253,7 +277,7 @@ struct ColdataSegment
           return adc1ch3_1 | adc1ch3_2 << 4;
       }
     }
-    throw WibFrameRelatedIndexError(ERS_HERE, adc, 0, 1);
+    throw WibFrameRelatedIndexError(__FILE__, __LINE__, adc, 0, 1);
   }
 
   void set_channel(const uint8_t adc, const uint8_t ch, const uint16_t new_val) // NOLINT(build/unsigned)
@@ -307,8 +331,7 @@ struct ColdataBlock
 {
   static constexpr int s_num_seg_per_block = 8;
   static constexpr int s_num_ch_per_adc = 8;
-  static constexpr int s_num_adc_per_block =
-    ColdataSegment::s_num_ch_per_seg * s_num_seg_per_block / s_num_ch_per_adc;
+  static constexpr int s_num_adc_per_block = ColdataSegment::s_num_ch_per_seg * s_num_seg_per_block / s_num_ch_per_adc;
   static constexpr int s_num_ch_per_block = s_num_seg_per_block * ColdataSegment::s_num_ch_per_seg;
 
   ColdataHeader head;
@@ -317,20 +340,21 @@ struct ColdataBlock
   uint16_t get_channel(const uint8_t adc, const uint8_t ch) const // NOLINT(build/unsigned)
   {
     // Each segment houses one half (four channels) of two subsequent ADCs.
-    return segments[ get_segment_index_(adc, ch) ].get_channel(adc, ch);
+    return segments[get_segment_index_(adc, ch)].get_channel(adc, ch);
   }
 
   void set_channel(const uint8_t adc, const uint8_t ch, const uint16_t new_val) // NOLINT(build/unsigned)
   {
-    segments[ get_segment_index_(adc, ch) ].set_channel(adc, ch, new_val);
+    segments[get_segment_index_(adc, ch)].set_channel(adc, ch, new_val);
   }
 
 private:
-  int get_segment_index_(const int adc, const int ch) const {
+  int get_segment_index_(const int adc, const int ch) const
+  {
     auto segment_id = (adc / 2) * 2 + ch / 4;
 
     if (segment_id < 0 || segment_id > s_num_seg_per_block - 1) {
-      throw WibFrameRelatedIndexError(ERS_HERE, segment_id, 0, s_num_seg_per_block - 1);
+      throw WibFrameRelatedIndexError(__FILE__, __LINE__, segment_id, 0, s_num_seg_per_block - 1);
     }
     return segment_id;
   }
@@ -369,21 +393,22 @@ public:
   static constexpr int s_num_frame_bytes = s_num_frame_words * sizeof(word_t);
 
   const WIBHeader* get_wib_header() const { return &m_head; }
-        WIBHeader* get_wib_header()       { return &m_head; }
+  WIBHeader* get_wib_header() { return &m_head; }
 
   const ColdataHeader* get_coldata_header(const unsigned block_index) const
   {
     throw_if_invalid_block_index_(block_index);
     return &m_blocks[block_index].head;
   }
-  const ColdataBlock& get_block(const uint8_t b) const { // NOLINT(build/unsigned)
+  const ColdataBlock& get_block(const uint8_t b) const
+  { // NOLINT(build/unsigned)
     throw_if_invalid_block_index_(b);
-    return m_blocks[b]; 
+    return m_blocks[b];
   }
 
   // WIBHeader mutators
   void set_wib_errors(const uint16_t new_wib_errors) { m_head.wib_errors = new_wib_errors; } // NOLINT(build/unsigned)
-  void set_timestamp(const uint64_t new_timestamp) { m_head.set_timestamp(new_timestamp); }    // NOLINT(build/unsigned)
+  void set_timestamp(const uint64_t new_timestamp) { m_head.set_timestamp(new_timestamp); }  // NOLINT(build/unsigned)
 
   // ColdataBlock channel accessors
   uint16_t get_channel(const uint8_t block_num, const uint8_t adc, const uint8_t ch) const // NOLINT(build/unsigned)
@@ -423,10 +448,10 @@ public:
   friend std::ostream& operator<<(std::ostream& o, WIBFrame const& frame);
 
 private:
-
-  void throw_if_invalid_block_index_(const int block_num) const {
+  void throw_if_invalid_block_index_(const int block_num) const
+  {
     if (block_num < 0 || block_num > s_num_block_per_frame - 1) {
-      throw WibFrameRelatedIndexError(ERS_HERE, block_num, 0, s_num_block_per_frame - 1);
+      throw WibFrameRelatedIndexError(__FILE__, __LINE__, block_num, 0, s_num_block_per_frame - 1);
     }
   }
 

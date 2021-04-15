@@ -13,29 +13,45 @@
 #include "dataformats/TriggerRecordHeaderData.hpp"
 #include "dataformats/Types.hpp"
 
-#include "ers/Issue.hpp"
-
 #include <bitset>
+#include <cstring>
 #include <ostream>
 #include <string>
 #include <vector>
 
 namespace dunedaq {
 
-/**
- * @brief An ERS Error indicating that the requested index is out of range
- * @param cri_index_supplied Index that caused the error
- * @param cri_index_max Maximum valid index for this function
- * @cond Doxygen doesn't like ERS macros
-*/
-ERS_DECLARE_ISSUE(dataformats,
-                  ComponentRequestIndexError,
-                  "Supplied ComponentRequest index " << cri_index_supplied << " is greater than the maximum index "
-                                                     << cri_index_max,
-                  ((int)cri_index_supplied)((int)cri_index_max)) // NOLINT
-    /// @endcond
-
 namespace dataformats {
+
+/**
+ * @brief A std::exception indicating that the requested index is out of range
+ */
+class ComponentRequestIndexError : public std::exception
+{
+public:
+  ComponentRequestIndexError(std::string file, int line, int index_supplied, int index_max)
+    : m_file(file)
+    , m_line(line)
+    , m_index_supplied(index_supplied)
+    , m_index_max(index_max)
+  {
+    m_what = file + ":" + std::to_string(line) + ": Supplied ComponentRequest index " + std::to_string(index_supplied) +
+             " is greater than the maximum index " + std::to_string(index_max);
+  }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+  std::string get_file() const { return m_file; }
+  int get_line() const { return m_line; }
+  int get_index_supplied() const { return m_index_supplied; }
+  int get_index_max() const { return m_index_max; }
+
+private:
+  std::string m_file;
+  int m_line;
+  int m_index_supplied;
+  int m_index_max;
+  std::string m_what;
+};
 
 /**
  * @brief C++ representation of a TriggerRecordHeader, which wraps a flat array that is the TriggerRecordHeader's
@@ -54,7 +70,7 @@ public:
 
     m_data_arr = malloc(size); // NOLINT(build/unsigned)
     if (m_data_arr == nullptr) {
-        throw MemoryAllocationFailed(ERS_HERE, size);
+      throw MemoryAllocationFailed(__FILE__, __LINE__, size);
     }
     m_alloc = true;
 
@@ -85,7 +101,7 @@ public:
 
       m_data_arr = malloc(size);
       if (m_data_arr == nullptr) {
-          throw MemoryAllocationFailed(ERS_HERE, size);
+        throw MemoryAllocationFailed(__FILE__, __LINE__, size);
       }
       m_alloc = true;
       memcpy(m_data_arr, existing_trigger_record_header_buffer, size);
@@ -109,10 +125,12 @@ public:
     if (&other == this)
       return *this;
 
-    if (m_alloc) { free(m_data_arr); }
+    if (m_alloc) {
+      free(m_data_arr);
+    }
     m_data_arr = malloc(other.get_total_size_bytes());
     if (m_data_arr == nullptr) {
-        throw MemoryAllocationFailed(ERS_HERE, other.get_total_size_bytes());
+      throw MemoryAllocationFailed(__FILE__, __LINE__, other.get_total_size_bytes());
     }
     m_alloc = true;
     memcpy(m_data_arr, other.m_data_arr, other.get_total_size_bytes());
@@ -240,7 +258,7 @@ public:
   ComponentRequest at(size_t idx) const
   {
     if (idx >= header_()->num_requested_components) {
-      throw ComponentRequestIndexError(ERS_HERE, idx, header_()->num_requested_components - 1);
+      throw ComponentRequestIndexError(__FILE__, __LINE__, idx, header_()->num_requested_components - 1);
     }
     // Increment header pointer by one to skip header
     return *(reinterpret_cast<ComponentRequest*>(header_() + 1) + idx); // NOLINT
@@ -255,7 +273,7 @@ public:
   ComponentRequest& operator[](size_t idx)
   {
     if (idx >= header_()->num_requested_components) {
-      throw ComponentRequestIndexError(ERS_HERE, idx, header_()->num_requested_components - 1);
+      throw ComponentRequestIndexError(__FILE__, __LINE__, idx, header_()->num_requested_components - 1);
     }
     // Increment header pointer by one to skip header
     return *(reinterpret_cast<ComponentRequest*>(header_() + 1) + idx); // NOLINT

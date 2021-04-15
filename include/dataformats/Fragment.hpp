@@ -17,43 +17,86 @@
 #include "dataformats/GeoID.hpp"
 #include "dataformats/Types.hpp"
 
-#include "ers/Issue.hpp"
-
 #include <bitset>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <numeric>
+#include <sstream>
 #include <utility>
 #include <vector>
 
 namespace dunedaq {
-/**
- * @brief An ERS Error that indicates that one the buffers given to the Fragment constructor is invalid
- * @param fb_addr Address of invalid buffer
- * @param fb_size Size of invalid buffer
- * @cond Doxygen doesn't like ERS macros
- */
-ERS_DECLARE_ISSUE(dataformats,
-                  FragmentBufferError,
-                  "Fragment Buffer " << fb_addr << " with size " << fb_size << " is invalid",
-                  ((void*)fb_addr)((size_t)fb_size)) // NOLINT
-                                                     /// @endcond
-/**
- * @brief An ERS Error that indicates that an issue was detected with the requested Fragment Size
- * @param fs_size Fragment size that caused issue
- * @param fs_min Minimum allowable Fragment size
- * @param fs_max Maximum allowable Fragment size
- * @cond Doxygen doesn't like ERS macros
- */
-ERS_DECLARE_ISSUE(dataformats,
-                  FragmentSizeError,
-                  "Fragment has a requested size of " << fs_size << ", which is outside the allowable range of "
-                                                      << fs_min << "-" << fs_max,
-                  ((size_t)fs_size)((size_t)fs_min)((size_t)fs_max)) // NOLINT
-                                                                     /// @endcond
 
 namespace dataformats {
+/**
+ * @brief A std::exception that indicates that one the buffers given to the Fragment constructor is invalid
+ */
+class FragmentBufferError : public std::exception
+{
+public:
+  FragmentBufferError(std::string file, int line, void* buffer_address, size_t buffer_size)
+    : m_file(file)
+    , m_line(line)
+    , m_buffer_address(buffer_address)
+    , m_buffer_size(buffer_size)
+  {
+    std::stringstream oss;
+    oss << file << ":" << line << ": Fragment Buffer " << buffer_address << " with size " << buffer_size
+        << " is invalid";
+    m_what = oss.str();
+  }
+
+  std::string get_file() const { return m_file; }
+  int get_line() const { return m_line; }
+  void* get_buffer_address() const { return m_buffer_address; }
+  size_t get_buffer_size() const { return m_buffer_size; }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+private:
+  std::string m_file;
+  int m_line;
+  void* m_buffer_address;
+  size_t m_buffer_size;
+
+  std::string m_what;
+};
+
+/**
+ * @brief A std::exception that indicates that an issue was detected with the requested Fragment Size
+ */
+class FragmentSizeError : public std::exception
+{
+public:
+  FragmentSizeError(std::string file, int line, size_t fragment_size, size_t size_min, size_t size_max)
+    : m_file(file)
+    , m_line(line)
+    , m_fragment_size(fragment_size)
+    , m_size_min(size_min)
+    , m_size_max(size_max)
+  {
+    m_what = file + ":" + std::to_string(line) + ": Fragment has a requested size of " + std::to_string(fragment_size) +
+             ", which is outside the allowable range of " + std::to_string(size_min) + "-" + std::to_string(size_max);
+  }
+
+  std::string get_file() const { return m_file; }
+  int get_line() const { return m_line; }
+  size_t get_fragment_size() const { return m_fragment_size; }
+  size_t get_size_min() const { return m_size_min; }
+  size_t get_size_max() const { return m_size_max; }
+
+  const char* what() const noexcept override { return m_what.c_str(); }
+
+private:
+  std::string m_file;
+  int m_line;
+  size_t m_fragment_size;
+  size_t m_size_min;
+  size_t m_size_max;
+
+  std::string m_what;
+};
 
 /**
  * @brief C++ Representation of a DUNE Fragment, wrapping the flat byte array that is the Fragment's "actual" form
@@ -81,12 +124,12 @@ public:
                   std::accumulate(pieces.begin(), pieces.end(), 0ULL, [](auto& a, auto& b) { return a + b.second; });
 
     if (size < sizeof(FragmentHeader)) {
-      throw FragmentSizeError(ERS_HERE, size, sizeof(FragmentHeader), -1);
+      throw FragmentSizeError(__FILE__, __LINE__, size, sizeof(FragmentHeader), -1);
     }
 
     m_data_arr = malloc(size); // NOLINT(build/unsigned)
     if (m_data_arr == nullptr) {
-        throw MemoryAllocationFailed(ERS_HERE, size);
+      throw MemoryAllocationFailed(__FILE__, __LINE__, size);
     }
     m_alloc = true;
 
@@ -97,7 +140,7 @@ public:
     size_t offset = sizeof(FragmentHeader);
     for (auto& piece : pieces) {
       if (piece.first == nullptr) {
-        throw FragmentBufferError(ERS_HERE, piece.first, piece.second);
+        throw FragmentBufferError(__FILE__, __LINE__, piece.first, piece.second);
       }
       memcpy(static_cast<uint8_t*>(m_data_arr) + offset, piece.first, piece.second); // NOLINT(build/unsigned)
       offset += piece.second;
@@ -127,7 +170,7 @@ public:
       auto header = reinterpret_cast<FragmentHeader*>(existing_fragment_buffer); // NOLINT
       m_data_arr = malloc(header->size);
       if (m_data_arr == nullptr) {
-          throw MemoryAllocationFailed(ERS_HERE, header->size);
+        throw MemoryAllocationFailed(__FILE__, __LINE__, header->size);
       }
       m_alloc = true;
       memcpy(m_data_arr, existing_fragment_buffer, header->size);
@@ -272,7 +315,7 @@ public:
   /**
    * @brief Get the fragment_type_t value stored in the header
    * @return Current value of the fragment_type header field
-  */
+   */
   fragment_type_t get_fragment_type_code() const { return header_()->fragment_type; }
   /**
    * @brief Get the fragment_type header field
