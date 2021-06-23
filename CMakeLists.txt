@@ -9,8 +9,12 @@ daq_setup_environment()
 find_package(ers REQUIRED)
 find_package(Boost 1.70.0 COMPONENTS unit_test_framework REQUIRED)
 find_package(logging REQUIRED)
+find_package(cmdlib REQUIRED)
+find_package(rcif REQUIRED)
 
 set(RAWDATA_DEPENDENCIES ers::ers logging::logging)
+
+daq_codegen( cmd.jsonnet DEP_PKGS rcif cmdlib TEMPLATES Structs.hpp.j2 Nljs.hpp.j2 )
 
 ##############################################################################
 # Main library
