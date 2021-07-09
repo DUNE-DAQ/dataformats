@@ -1,3 +1,10 @@
+/**
+ * @file TriggerPrimitivesFragment.hpp Fragment format for trigger primitives
+ *
+ * This is part of the DUNE DAQ, copyright 2020.
+ * Licensing/copyright details are in the COPYING file that you should have
+ * received with this code.
+ */
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGER_TRIGGERPRIMITIVESFRAGMENT_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGER_TRIGGERPRIMITIVESFRAGMENT_HPP_
 
