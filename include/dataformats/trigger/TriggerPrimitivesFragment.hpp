@@ -31,11 +31,11 @@ struct TriggerPrimitivesFragment
 
   uint32_t magic = s_tpf_header_magic;
   uint32_t version = s_tpf_version; // NOLINT(build/unsigned)
-  uint64_t n_trigger_primitives;    // NOLINT(build/unsigned)
+  uint64_t num_trigger_primitives;    // NOLINT(build/unsigned)
 
   const TriggerPrimitive& at(size_t i) const
   {
-    if(i>=n_trigger_primitives){
+    if(i>=num_trigger_primitives){
       throw std::out_of_range("Primitive index out of range");
     }
     const void* start_of_primitives=this+1;
