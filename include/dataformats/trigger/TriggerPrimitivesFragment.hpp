@@ -38,15 +38,16 @@ struct TriggerPrimitivesFragment
 
   uint32_t magic = s_tpf_header_magic;
   uint32_t version = s_tpf_version; // NOLINT(build/unsigned)
-  uint64_t num_trigger_primitives;    // NOLINT(build/unsigned)
+  uint64_t num_trigger_primitives;  // NOLINT(build/unsigned)
 
   const TriggerPrimitive& at(size_t i) const
   {
-    if(i>=num_trigger_primitives){
+    if (i >= num_trigger_primitives) {
       throw std::out_of_range("Primitive index out of range");
     }
-    const void* start_of_primitives=this+1;
-    return *reinterpret_cast<const TriggerPrimitive*>(static_cast<const char*>(start_of_primitives) + i*sizeof(TriggerPrimitive));
+    const void* start_of_primitives = this + 1;
+    return *reinterpret_cast<const TriggerPrimitive*>(static_cast<const char*>(start_of_primitives) +
+                                                      i * sizeof(TriggerPrimitive));
   }
 
   TriggerPrimitive& at(size_t i)
@@ -57,7 +58,6 @@ struct TriggerPrimitivesFragment
     // "Effective C++"
     return const_cast<TriggerPrimitive&>(static_cast<const TriggerPrimitivesFragment&>(*this).at(i));
   }
-
 };
 
 } // namespace dataformats
