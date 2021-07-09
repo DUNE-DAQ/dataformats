@@ -1,7 +1,9 @@
 #ifndef DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGER_TRIGGERPRIMITIVESFRAGMENT_HPP_
 #define DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGER_TRIGGERPRIMITIVESFRAGMENT_HPP_
 
+#include <cstddef> // For size_t
 #include <cstdint>
+#include <stdexcept>
 
 namespace dunedaq {
 
@@ -31,11 +33,24 @@ struct TriggerPrimitivesFragment
   uint32_t version = s_tpf_version; // NOLINT(build/unsigned)
   uint64_t n_trigger_primitives;    // NOLINT(build/unsigned)
 
-  // This is a "flexible array member", which is strictly not part of
-  // the C++ standard, although it happens to work. If we don't want
-  // to use this, we can manually calculate offsets into the structure
-  // to get pointers to the individual TriggerPrimitive structures
-  TriggerPrimitive primitives[];
+  const TriggerPrimitive& at(size_t i) const
+  {
+    if(i>=n_trigger_primitives){
+      throw std::out_of_range("Primitive index out of range");
+    }
+    const void* start_of_primitives=this+1;
+    return *reinterpret_cast<const TriggerPrimitive*>(static_cast<const char*>(start_of_primitives) + i*sizeof(TriggerPrimitive));
+  }
+
+  TriggerPrimitive& at(size_t i)
+  {
+    // According to https://stackoverflow.com/questions/123758/ this
+    // is a sensible way to avoid duplicating the body of the const
+    // and non-const versions of the function, recommended in
+    // "Effective C++"
+    return const_cast<TriggerPrimitive&>(static_cast<const TriggerPrimitivesFragment&>(*this).at(i));
+  }
+
 };
 
 } // namespace dataformats
