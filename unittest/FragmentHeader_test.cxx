@@ -22,6 +22,25 @@ using namespace dunedaq::dataformats;
 
 BOOST_AUTO_TEST_SUITE(FragmentHeader_test)
 
+BOOST_AUTO_TEST_CASE(FragmentTypeConversion)
+{
+  BOOST_REQUIRE_EQUAL(static_cast<fragment_type_t>(string_to_fragment_type("TPC")),
+                      static_cast<fragment_type_t>(FragmentType::kTPCData));
+  BOOST_REQUIRE_EQUAL(fragment_type_to_string(FragmentType::kTPCData), "TPC");
+
+  auto type_map = get_fragment_type_names();
+  // sanity check
+  for (auto& type_pair : type_map) {
+    BOOST_REQUIRE_EQUAL(static_cast<fragment_type_t>(string_to_fragment_type(type_pair.second)),
+                        static_cast<fragment_type_t>(type_pair.first));
+    BOOST_REQUIRE_EQUAL(fragment_type_to_string(type_pair.first), type_pair.second);
+  }
+
+  BOOST_REQUIRE_EQUAL(static_cast<fragment_type_t>(string_to_fragment_type("thisIsABadFragmentType")),
+                      static_cast<fragment_type_t>(FragmentType::kUnknown));
+  BOOST_REQUIRE_EQUAL(fragment_type_to_string(static_cast<FragmentType>(-10)), "UNKNOWN");
+}
+
 /**
  * @brief Test that FragmentHeader::operator<< functions as expected
  */
