@@ -1,12 +1,18 @@
-#ifndef __ANLTYPES_H__
-#define __ANLTYPES_H__
+/**
+ * This is part of the DUNE DAQ , copyright 2020.
+ * Licensing/copyright details are in the COPYING file that you should have
+ * received with this code.
+ */
+#ifndef DATAFORMATS_INCLUDE_DATAFORMATS_SSP_SSPTYPES_HPP_
+#define DATAFORMATS_INCLUDE_DATAFORMATS_SSP_SSPTYPES_HPP_
 
 #include <cstdlib>
 
 //Maximum size of packet payload on comms channel
 #define MAX_CTRL_DATA 256
 
-namespace SSPDAQ{
+namespace dunedaq {
+namespace dataformats {
 
   //Readable names for interface types
 enum Comm_t{kUSB, kEthernet, kEmulated};
@@ -53,15 +59,15 @@ enum statusConstants {
   //Header to write out at top of millislice (i.e. this is the artdaq "metadata"
   //for a fragment
  struct MillisliceHeader {
-   unsigned long startTime;
-   unsigned long endTime;
-   unsigned long triggerTime;
-   unsigned int	length;				// Packet Length in unsigned ints (including header)
-   unsigned int nTriggers;
-   unsigned int triggerType;
-   
+   unsigned long startTime;			// NOLINT(runtime/int)
+   unsigned long endTime;			// NOLINT(runtime/int)
+   unsigned long triggerTime;		// NOLINT(runtime/int)
+   unsigned int	length;				// NOLINT(runtime/int) // Packet Length including header)
+   unsigned int nTriggers;			// NOLINT(runtime/int)
+   unsigned int triggerType;		// NOLINT(runtime/int)
+
    static const size_t sizeInUInts = 9;
-   
+
  };
 
   //Structure defined by hardware, i.e. hardware output can be written straight into this struct
@@ -104,5 +110,7 @@ struct CtrlPacket {
 	unsigned int	data[MAX_CTRL_DATA];
 };
 
-}//namespace SSPDAQ
-#endif
+} // namespace dataformats
+} // namespace dunedaq
+
+#endif // DATAFORMATS_INCLUDE_DATAFORMATS_SSP_SSPTYPES_HPP_
