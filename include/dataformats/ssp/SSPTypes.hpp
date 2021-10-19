@@ -62,12 +62,12 @@ enum statusConstants {
   //Header to write out at top of millislice (i.e. this is the artdaq "metadata"
   //for a fragment
  struct MillisliceHeader {
-   unsigned long startTime;			// NOLINT(runtime/int)
-   unsigned long endTime;			// NOLINT(runtime/int)
-   unsigned long triggerTime;		// NOLINT(runtime/int)
-   unsigned int	length;				// NOLINT(runtime/int) // Packet Length including header)
-   unsigned int nTriggers;			// NOLINT(runtime/int)
-   unsigned int triggerType;		// NOLINT(runtime/int)
+   unsigned long startTime;     // NOLINT
+   unsigned long endTime;       // NOLINT
+   unsigned long triggerTime;   // NOLINT
+   unsigned int	length;         // NOLINT  // Packet Length including header)
+   unsigned int nTriggers;      // NOLINT
+   unsigned int triggerType;    // NOLINT
 
    static const size_t sizeInUInts = 9;
 
@@ -75,22 +75,22 @@ enum statusConstants {
 
   //Structure defined by hardware, i.e. hardware output can be written straight into this struct
 struct EventHeader {	// NOTE: Group fields are listed from MSB to LSB
-	unsigned int	header;				// 0xAAAAAAAA
-	unsigned short	length;				// Packet Length in unsigned ints (including header)
-	unsigned short	group1;				// Trigger Type, Status Flags, Header Type
-	unsigned short	triggerID;			// Trigger ID
-	unsigned short	group2;				// Module ID, Channel ID
-	unsigned short	timestamp[4];		// External Timestamp
+	unsigned int	header;           // NOLINT // 0xAAAAAAAA
+	unsigned short	length;         // NOLINT // Packet Length in unsigned ints (including header)
+	unsigned short	group1;         // NOLINT // Trigger Type, Status Flags, Header Type
+	unsigned short	triggerID;      // NOLINT // Trigger ID
+	unsigned short	group2;         // NOLINT // Module ID, Channel ID
+	unsigned short	timestamp[4];   // NOLINT // External Timestamp
 								// Words 0-1 = Clocks since last sync pulse
 								// Words 2-3 = Sync pulse count
-	unsigned short	peakSumLow;			// Lower 16 bits of Peak Sum
-	unsigned short	group3;				// Offset of Peak, Higher 8 bits of Peak Sum
-	unsigned short	preriseLow;			// Lower 16 bits of Prerise
-	unsigned short	group4;				// Lower 8 bits of integratedSum, Higher 8 bits of Prerise
-	unsigned short	intSumHigh;			// Upper 16 bits of integratedSum
-	unsigned short	baseline;			// Baseline
-	unsigned short	cfdPoint[4];		// CFD Timestamp Interpolation Points
-	unsigned short	intTimestamp[4];	// Internal Timestamp
+	unsigned short	peakSumLow;       // NOLINT // Lower 16 bits of Peak Sum
+	unsigned short	group3;           // NOLINT // Offset of Peak, Higher 8 bits of Peak Sum
+	unsigned short	preriseLow;       // NOLINT // Lower 16 bits of Prerise
+	unsigned short	group4;           // NOLINT // Lower 8 bits of integratedSum, Higher 8 bits of Prerise
+	unsigned short	intSumHigh;       // NOLINT // Upper 16 bits of integratedSum
+	unsigned short	baseline;         // NOLINT // Baseline
+	unsigned short	cfdPoint[4];      // NOLINT // CFD Timestamp Interpolation Points
+	unsigned short	intTimestamp[4];  // NOLINT // Internal Timestamp
 								// Word 0 = Reserved for interpolation
 								// Words 1-3 = 48 bit Timestamp
 };
