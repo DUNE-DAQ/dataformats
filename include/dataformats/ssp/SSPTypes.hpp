@@ -8,14 +8,17 @@
 
 #include <cstdlib>
 
-//Maximum size of packet payload on comms channel
-#define MAX_CTRL_DATA 256
-
 namespace dunedaq {
 namespace dataformats {
 
-  //Readable names for interface types
+namespace ssp {
+
+//Readable names for interface types
 enum Comm_t{kUSB, kEthernet, kEmulated};
+
+static const constexpr int max_control_data = 256; //Maximum size of packet payload on comms channel
+
+} // namespace ssp
 
 //==============================================================================
 // Enumerated Constants
@@ -95,7 +98,7 @@ struct EventHeader {	// NOTE: Group fields are listed from MSB to LSB
 
   //byte-level structure of command header to send to SSP
 struct CtrlHeader {
-        unsigned int length;
+  unsigned int length;
 	unsigned int address;
 	unsigned int command;
 	unsigned int size;
@@ -107,7 +110,7 @@ struct CtrlHeader {
   //longest possible message
 struct CtrlPacket {
 	CtrlHeader	header;
-	unsigned int	data[MAX_CTRL_DATA];
+	unsigned int	data[ssp::max_control_data];
 };
 
 } // namespace dataformats
