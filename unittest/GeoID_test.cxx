@@ -35,6 +35,9 @@ BOOST_AUTO_TEST_CASE(SystemTypeConversion)
   BOOST_REQUIRE_EQUAL(GeoID::system_type_to_string(GeoID::SystemType::kDataSelection), "DataSelection");
   BOOST_REQUIRE_EQUAL(GeoID::string_to_system_type("DataSelection"), GeoID::SystemType::kDataSelection);
 
+  BOOST_REQUIRE_EQUAL(GeoID::system_type_to_string(GeoID::SystemType::kNDLArTPC), "NDLArTPC");
+  BOOST_REQUIRE_EQUAL(GeoID::string_to_system_type("NDLArTPC"), GeoID::SystemType::kNDLArTPC);
+
   BOOST_REQUIRE_EQUAL(GeoID::system_type_to_string(GeoID::SystemType::kInvalid), "Invalid");
   BOOST_REQUIRE_EQUAL(GeoID::string_to_system_type("Invalid"), GeoID::SystemType::kInvalid);
 
