@@ -10,6 +10,7 @@
 #define DATAFORMATS_INCLUDE_DATAFORMATS_TRIGGERRECORDHEADERDATA_HPP_
 
 #include "dataformats/ComponentRequest.hpp"
+#include "dataformats/MagicBytes.hpp"
 #include "dataformats/Types.hpp"
 
 #include <limits>
@@ -26,10 +27,6 @@ namespace dataformats {
  */
 struct TriggerRecordHeaderData
 {
-  /**
-   * @brief Magic bytes to identify a TriggerRecordHeader entry in a raw data stream
-   */
-  static constexpr uint32_t s_trigger_record_header_magic = 0x33334444; // NOLINT(build/unsigned)
 
   /**
    * @brief The current version of the TriggerRecordHeader
@@ -50,12 +47,7 @@ struct TriggerRecordHeaderData
   /**
    * @brief Magic bytes used to identify a TriggerRecordHeaderData struct in a raw data stream
    */
-  uint32_t trigger_record_header_marker = s_trigger_record_header_magic; // NOLINT(build/unsigned)
-
-  /**
-   * @brief Version of the TriggerRecordHeaderData structure
-   */
-  uint32_t version = s_trigger_record_header_version; // NOLINT(build/unsigned)
+  MagicBytes magic_bytes{ MagicBytes::s_trigger_record_header_magic, s_trigger_record_header_version };
 
   /**
    * @brief Trigger Number
@@ -151,8 +143,8 @@ enum class TriggerRecordErrorBits : size_t
 inline std::ostream&
 operator<<(std::ostream& o, TriggerRecordHeaderData const& hdr)
 {
-  return o << "check_word: " << std::hex << hdr.trigger_record_header_marker << std::dec << ", "
-           << "version: " << hdr.version << ", "
+  return o << "check_word: " << std::hex << hdr.magic_bytes.type_marker << std::dec << ", "
+           << "version: " << hdr.magic_bytes.version << ", "
 
            << "trigger_number: " << hdr.trigger_number << ", "
            << "run_number: " << hdr.run_number << ", "
@@ -176,10 +168,10 @@ inline std::istream&
 operator>>(std::istream& o, TriggerRecordHeaderData& hdr)
 {
   std::string tmp;
-  return o >> tmp >> std::hex >> hdr.trigger_record_header_marker >> std::dec >> tmp >> tmp >> hdr.version >> tmp >>
-         tmp >> hdr.trigger_number >> tmp >> tmp >> hdr.run_number >> tmp >> tmp >> hdr.trigger_timestamp >> tmp >>
-         tmp >> hdr.trigger_type >> tmp >> tmp >> hdr.error_bits >> tmp >> tmp >> hdr.num_requested_components >> tmp >>
-         tmp >> hdr.sequence_number >> tmp >> tmp >> hdr.max_sequence_number;
+  return o >> tmp >> std::hex >> hdr.magic_bytes.type_marker >> std::dec >> tmp >> tmp >> hdr.magic_bytes.version >>
+         tmp >> tmp >> hdr.trigger_number >> tmp >> tmp >> hdr.run_number >> tmp >> tmp >> hdr.trigger_timestamp >>
+         tmp >> tmp >> hdr.trigger_type >> tmp >> tmp >> hdr.error_bits >> tmp >> tmp >> hdr.num_requested_components >>
+         tmp >> tmp >> hdr.sequence_number >> tmp >> tmp >> hdr.max_sequence_number;
 }
 
 } // namespace dataformats

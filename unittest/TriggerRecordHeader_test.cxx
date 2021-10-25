@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE(ExistingHeader)
   }
 
   BOOST_REQUIRE_EQUAL(*reinterpret_cast<uint32_t*>(buff), // NOLINT
-                      TriggerRecordHeaderData::s_trigger_record_header_magic);
+                      MagicBytes::s_trigger_record_header_magic);
 
   free(buff);
 }
