@@ -48,26 +48,7 @@ public:
    * @brief Construct a TriggerRecordHeader using a vector of ComponentRequest objects
    * @param components Vector of ComponentRequests to copy into TriggerRecordHeader
    */
-  explicit TriggerRecordHeader(const std::vector<ComponentRequest>& components)
-  {
-    size_t size = sizeof(TriggerRecordHeaderData) + components.size() * sizeof(ComponentRequest);
-
-    m_data_arr = malloc(size); // NOLINT(build/unsigned)
-    if (m_data_arr == nullptr) {
-      throw MemoryAllocationFailed(ERS_HERE, size);
-    }
-    m_alloc = true;
-
-    TriggerRecordHeaderData header;
-    header.num_requested_components = components.size();
-    memcpy(m_data_arr, &header, sizeof(header));
-
-    size_t offset = sizeof(header);
-    for (auto const& component : components) {
-      memcpy(static_cast<uint8_t*>(m_data_arr) + offset, &component, sizeof(component)); // NOLINT
-      offset += sizeof(component);
-    }
-  }
+  explicit TriggerRecordHeader(const std::vector<ComponentRequest>& components);
 
   /**
    * @brief Construct a TriggerRecordHeader using an existing TriggerRecordHeader data array
@@ -75,22 +56,7 @@ public:
    * @param copy_from_buffer Whether to create a copy of the exiting buffer (true) or use that memory without taking
    * ownership (false)
    */
-  explicit TriggerRecordHeader(void* existing_trigger_record_header_buffer, bool copy_from_buffer = false)
-  {
-    if (!copy_from_buffer) {
-      m_data_arr = existing_trigger_record_header_buffer;
-    } else {
-      auto header = reinterpret_cast<TriggerRecordHeaderData*>(existing_trigger_record_header_buffer); // NOLINT
-      size_t size = header->num_requested_components * sizeof(ComponentRequest) + sizeof(TriggerRecordHeaderData);
-
-      m_data_arr = malloc(size);
-      if (m_data_arr == nullptr) {
-        throw MemoryAllocationFailed(ERS_HERE, size);
-      }
-      m_alloc = true;
-      memcpy(m_data_arr, existing_trigger_record_header_buffer, size);
-    }
-  }
+  explicit TriggerRecordHeader(void* existing_trigger_record_header_buffer, bool copy_from_buffer = false);
 
   /**
    * @brief TriggerRecordHeader Copy Constructor
@@ -104,22 +70,7 @@ public:
    * @param other TriggerRecordHeader to copy
    * @return Reference to TriggerRecordHeader copy
    */
-  TriggerRecordHeader& operator=(TriggerRecordHeader const& other)
-  {
-    if (&other == this)
-      return *this;
-
-    if (m_alloc) {
-      free(m_data_arr);
-    }
-    m_data_arr = malloc(other.get_total_size_bytes());
-    if (m_data_arr == nullptr) {
-      throw MemoryAllocationFailed(ERS_HERE, other.get_total_size_bytes());
-    }
-    m_alloc = true;
-    memcpy(m_data_arr, other.m_data_arr, other.get_total_size_bytes());
-    return *this;
-  }
+  TriggerRecordHeader& operator=(TriggerRecordHeader const& other);
 
   TriggerRecordHeader(TriggerRecordHeader&&) = default;            ///< Default move constructor
   TriggerRecordHeader& operator=(TriggerRecordHeader&&) = default; ///< Default move assignment operator
@@ -298,6 +249,65 @@ private:
   };                     ///< Flat memory containing a TriggerRecordHeaderData header and an array of ComponentRequests
   bool m_alloc{ false }; ///< Whether the TriggerRecordHeader owns the memory pointed by m_data_arr
 };
+
+
+TriggerRecordHeader::TriggerRecordHeader(const std::vector<ComponentRequest>& components)
+{
+  size_t size = sizeof(TriggerRecordHeaderData) + components.size() * sizeof(ComponentRequest);
+
+  m_data_arr = malloc(size); // NOLINT(build/unsigned)
+  if (m_data_arr == nullptr) {
+    throw MemoryAllocationFailed(ERS_HERE, size);
+  }
+  m_alloc = true;
+
+  TriggerRecordHeaderData header;
+  header.num_requested_components = components.size();
+  memcpy(m_data_arr, &header, sizeof(header));
+
+  size_t offset = sizeof(header);
+  for (auto const& component : components) {
+    memcpy(static_cast<uint8_t*>(m_data_arr) + offset, &component, sizeof(component)); // NOLINT
+    offset += sizeof(component);
+  }
+}
+
+
+TriggerRecordHeader::TriggerRecordHeader(void* existing_trigger_record_header_buffer, bool copy_from_buffer)
+{
+  if (!copy_from_buffer) {
+    m_data_arr = existing_trigger_record_header_buffer;
+  } else {
+    auto header = reinterpret_cast<TriggerRecordHeaderData*>(existing_trigger_record_header_buffer); // NOLINT
+    size_t size = header->num_requested_components * sizeof(ComponentRequest) + sizeof(TriggerRecordHeaderData);
+
+    m_data_arr = malloc(size);
+    if (m_data_arr == nullptr) {
+      throw MemoryAllocationFailed(ERS_HERE, size);
+    }
+    m_alloc = true;
+    memcpy(m_data_arr, existing_trigger_record_header_buffer, size);
+  }
+}
+
+
+TriggerRecordHeader& 
+TriggerRecordHeader::operator=(TriggerRecordHeader const& other)
+{
+  if (&other == this)
+    return *this;
+
+  if (m_alloc) {
+    free(m_data_arr);
+  }
+  m_data_arr = malloc(other.get_total_size_bytes());
+  if (m_data_arr == nullptr) {
+    throw MemoryAllocationFailed(ERS_HERE, other.get_total_size_bytes());
+  }
+  m_alloc = true;
+  memcpy(m_data_arr, other.m_data_arr, other.get_total_size_bytes());
+  return *this;
+}
 
 } // namespace dataformats
 } // namespace dunedaq
